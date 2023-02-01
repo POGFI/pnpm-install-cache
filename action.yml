@@ -30,7 +30,7 @@ runs:
       with:
         path: |
           ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          ${{ (inputs.node_modules && 'node_modules') || '' }}
+          ${{ (inputs.node_modules && '**/node_modules') || '' }}
         key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-pnpm-
