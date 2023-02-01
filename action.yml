@@ -1,0 +1,40 @@
+name: 'PNPM Install Cache'
+description: 'Installs and Caches from pnpm'
+inputs:
+  recursive:
+    desciption: Should pnpm install with -r
+    default: false
+  node_modules:
+    description: Should cache the node_modules Folder
+    default: false
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: pnpm/action-setup@v2.2.4
+      name: Install pnpm
+      id: pnpm-install
+      with:
+        version: latest
+        run_install: false
+
+    - name: Get pnpm store directory
+      id: pnpm-cache
+      shell: bash
+      run: |
+        pnpm store path
+        echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+    - uses: actions/cache@v3
+      name: Setup pnpm cache
+      with:
+        path: |
+          ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          ${{ (inputs.node_modules && 'node_modules') || '' }}
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-
+
+    - name: Install Dependencies
+      shell: bash
+      run: pnpm i ${{ (inputs.recursive && '-r') || '' }}
